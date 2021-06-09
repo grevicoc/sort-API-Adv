@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/style.css') }}">
+</head>
+<body>
+    <div class="left">
+        <div class="box-form">
+            Sort your CSV!
+            <br>
+            <form id="mainForm" action="/sort/" method="POST" enctype="multipart/form-data">
+                <label for="file-uploader">Upload CSV File:</label>
+                <input type="file" id="fileUpload" name="file-uploader" accept=".csv">
+    
+                <label for="column-specifier">Column: </label>
+                <input type="text" id="columnSpecifier" name="column-specifier">
+    
+                <label for="order-specifier">Ordering:</label>
+                <select name="order-specifier" id="orderSpecifier">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+    
+                <label for="algorithm-specifier">Sorting Algorithm:</label>
+                <select name="algorithm-specifier" id="algorithmSpecifier">
+                    <option value="selection">Selection Sort</option>
+                    <option value="merge">Mergesort</option>
+                </select>
+                <input type="submit" id="submitButton">
+            </form>
+        </div>
+        
+        <div class="box-see-result">
+            See the result!
+            <br>
+            <form id="resultForm" action="/sort/result" method="GET">
+                <label for="id-specifier">ID: </label>
+                <input type="text" id="idSpecifier" name="id-specifier">
+    
+                <input type="submit" id="submitButton">
+            </form>
+        </div>
+    </div>
+
+    <div class="right">
+        <div class="box-regist">
+            REGIST HERE !
+            <br>
+            <form id="userRegistrationForm" action="/user" method="POST">
+                <label for="usernameRegistrationSpecifier">username: </label>
+                <input type="text" name="username-registration-specifier" id="usernameRegistrationSpecifier">
+    
+                <label for="passwordRegistrationSpecifier">password: </label>
+                <input type="text" name="password-registration-specifier" id="passwordRegistrationSpecifier">
+    
+                <input type="submit" id="submitButton">
+            </form>
+        </div>  
+
+        <div class="box-login">
+            LOGIN HERE !
+            <br>
+            <form id="userLoginForm" action="/user" method="GET">
+                <label for="usernameLoginSpecifier">username: </label>
+                <input type="text" name="username-login-specifier" id="usernameLoginSpecifier">
+    
+                <label for="passwordLoginSpecifier">password: </label>
+                <input type="text" name="password-login-specifier" id="passwordLoginSpecifier">
+    
+                <input type="submit" id="submitButton">
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static',filename='scripts/script.js') }}"></script>
+</body>
+</html>
