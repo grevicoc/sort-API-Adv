@@ -12,7 +12,6 @@ from functools import wraps
 
 #Global Variables
 array_csv_formatted = None
-current_token = None
 
 app = Flask(__name__)
 
@@ -28,9 +27,14 @@ mysql = MySQL(app)
 def token_required(func):
     @wraps(func)
     def decorated():
-        
-        if (current_token==None):
-            return jsonify({'message' : 'Token is missing !!'}), 401
+        current_token = None
+
+        if 'x-access-token' in request.headers:
+            current_token = request.headers['x-access-token']
+        else:
+            return jsonify({
+                'message' : 'Token is invalid !!'
+            }), 401
 
         # decoding the payload to fetch the stored details
         data = jwt.decode(current_token, app.config['SECRET_KEY'],algorithms=["HS256"])
@@ -38,23 +42,24 @@ def token_required(func):
         #cek database
         cur = mysql.connection.cursor()
         getting = "SELECT * FROM users WHERE public_id=%s;"
-
-        values = data['public_id']
         
-        cur.execute(getting, [values])
+        try:
+            values = data['public_id']
+        
+            cur.execute(getting, [values])
 
-        rv = cur.fetchall()
+            rv = cur.fetchall()
 
-        mysql.connection.commit()
-        cur.close()
+            mysql.connection.commit()
+            cur.close()
 
-        if (len(rv)!=0):
-            return func()
-        else:
+        except:
             return jsonify({
                 'message' : 'Token is invalid !!'
             }), 401
-            
+
+        return func()
+
     return decorated
 
 @app.route('/')
@@ -68,6 +73,17 @@ def register():
     public_id = str(uuid.uuid4())
 
     #masukkan ke database
+    #   cek database dulu
+    cur = mysql.connection.cursor()
+    getting = "SELECT username FROM users;"
+    cur.execute(getting)
+    users = cur.fetchall()
+    for user in users:
+        if (username==user[0]):
+            return jsonify({
+                'message' : 'Username already used !!'
+            })
+    
     cur = mysql.connection.cursor()
     inserting = "INSERT INTO users VALUES (%s,%s,%s);"
     values = (public_id,username,password)
@@ -76,14 +92,15 @@ def register():
     mysql.connection.commit()
     cur.close()
 
-    return render_template('main-page.html') + "REGISTER SUCCESS"
+    return  "REGISTER SUCCESS"
 
 @app.route('/user')
 def login():
-    global current_token
 
-    username = request.args.get('username-login-specifier')
-    password = request.args.get('password-login-specifier')
+    username = request.form.get('username-login-specifier')
+    password = request.form.get('password-login-specifier')
+    print(username)
+    print(password)
 
     #cek database
     cur = mysql.connection.cursor()
@@ -93,17 +110,20 @@ def login():
     cur.execute(inserting, values)
 
     rv = cur.fetchone()
+    print(rv)
 
     token = None
     if (rv==None):
-        return "WRONG USERNAME OR PASSWORD"
+        return jsonify({
+                'message' : 'Wrong username or password !!'
+            })
     else:
         current_token = jwt.encode({'public_id':rv[0]},app.config['SECRET_KEY'],algorithm="HS256")
 
     mysql.connection.commit()
     cur.close()
 
-    return render_template('main-page.html') + "LOGIN SUCCESS"
+    return jsonify({'token': current_token})
 
 
 @app.route('/sort/', methods=['GET','POST'])
@@ -114,6 +134,7 @@ def sortPage():
     if (request.method=='POST'):
         csv_file = request.files['file-uploader']
         array_csv_formatted = backend.parser(backend.fileStorageToText(csv_file))
+        print(array_csv_formatted)
 
         if (request.form.get('algorithm-specifier')=="selection"):
             return redirect(url_for('.sort_selection'), code=307)       #307 ini mempertahankan method yang sebelumnya ke url selanjutnya
@@ -122,6 +143,7 @@ def sortPage():
 
     elif (request.method=='GET'):
         return redirect(url_for('.result_page'),code=307)
+    
     
 
 @app.route('/sort/selection',methods=['POST'])
@@ -164,7 +186,7 @@ def sort_merge():
 @token_required
 def result_page():
     #getting id
-    id = request.args.get("id-specifier")
+    id = request.form.get("id-specifier")
 
     #getting query
     cur = mysql.connection.cursor()

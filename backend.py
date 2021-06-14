@@ -48,7 +48,7 @@ def arrayToText(arrayOfCSV):
 #Fungsi yang mensort array dengan algoritma selection menjadi terurut sesuai order dan berdasarkan kolom column_specifier
 def sort_selection(array,column_specifier,order):
     
-    start_time = time.clock()
+    start_time = time.perf_counter()
     if (column_specifier>len(array[0])):
         return None         #error
     else:
@@ -74,18 +74,18 @@ def sort_selection(array,column_specifier,order):
                 array[i] =  max[0]
                 array[max[1]] = tempVal
 
-        retTime = time.clock() - start_time
+        retTime = time.perf_counter() - start_time
         
         return (array, "%.7f" % retTime)
 
 #Fungsi yang mensort array dengan algoritma mergesort menjadi terurut sesuai order dan berdasarkan kolom column_specifier        
 def sort_merge(array,column_specifier,order):
-    start_time = time.clock()
+    start_time = time.perf_counter()
     if (column_specifier>=len(array[0])):
         return None         #error
     
     else:
-        retTime = time.clock() - start_time
+        retTime = time.perf_counter() - start_time
         return ([array[0]] + merge(array[1:len(array)],column_specifier,order), "%.7f" % retTime)
 
 def merge(array,column_specifier,order):
